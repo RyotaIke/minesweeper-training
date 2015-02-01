@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- *
+ * マインスイーパのマップの操作、情報を扱うクラス
  * @author ryota
- *
  */
 public class PlayBoard {
 
@@ -51,7 +50,7 @@ public class PlayBoard {
 		{
 			for (int xCordinate = 0; xCordinate < this.sideLength; xCordinate++)
 			{
-				if (this.mapArray[yCordinate][xCordinate].getIsOpen())
+				if (this.mapArray[yCordinate][xCordinate].getIsOpen() && ! this.mapArray[yCordinate][xCordinate].getIsFlag())
 				{
 					amountOfOpenSquare++;
 				}
@@ -129,18 +128,9 @@ public class PlayBoard {
 		return false;
 	}
 
-	private boolean isBombExist(int xCordinate, int yCordinate)
-	{
-		if (isValidPosition(xCordinate, yCordinate))
-		{
-			return this.mapArray[yCordinate][xCordinate].isBomb();
-		}
-		return false;
-	}
-
 	/**
 	 * マップを表示する
-	 * なお、爆弾マスは X 、旗が立っているマスは F 、まだ開かれていないマスは ? がそれぞれ表示される
+	 * 爆弾マスは X 、旗が立っているマスは F 、まだ開かれていないマスは ? がそれぞれ表示される
 	 */
 	public void printMap()
 	{
@@ -184,11 +174,29 @@ public class PlayBoard {
 		}
 	}
 
-	public void setOpen(int height, int width)
+	// 指定された座標に爆弾があるかどうかを返す
+	private boolean isBombExist(int xCordinate, int yCordinate)
 	{
-		if (width >= 0 && width <= this.sideLength - 1 && height >= 0 && height <= this.sideLength - 1)
+		if (isValidPosition(xCordinate, yCordinate))
 		{
-			this.mapArray[height][width].setIsOpen(true);
+			return this.mapArray[yCordinate][xCordinate].isBomb();
+		}
+		return false;
+	}
+
+	public void setOpen(int xCordinate, int yCordinate, boolean state)
+	{
+		if (isValidPosition(xCordinate, yCordinate))
+		{
+			this.mapArray[yCordinate][xCordinate].setIsOpen(state);
+		}
+	}
+
+	public void setFlag(int xCordinate, int yCordinate, boolean state)
+	{
+		if (isValidPosition(xCordinate, yCordinate))
+		{
+			this.mapArray[yCordinate][xCordinate].setIsFlag(state);
 		}
 	}
 
@@ -201,6 +209,20 @@ public class PlayBoard {
 		return false;
 	}
 
+	public boolean getIsFlag(int height, int width)
+	{
+		if (width >= 0 && width <= this.sideLength - 1 && height >= 0 && height <= this.sideLength - 1)
+		{
+			return this.mapArray[height][width].getIsFlag();
+		}
+		return false;
+	}
+
+	public boolean getIsBomb(int xCordinate, int yCordinate)
+	{
+		return this.mapArray[yCordinate][xCordinate].isBomb();
+	}
+
 	public int getStatus(int height, int width)
 	{
 		if (width >= 0 && width <= this.sideLength - 1 && height >= 0 && height <= this.sideLength - 1)
@@ -208,8 +230,8 @@ public class PlayBoard {
 			return this.mapArray[height][width].getStatus();
 		}
 		return -1;
-
 	}
+
 
 	public int getSideLength()
 	{

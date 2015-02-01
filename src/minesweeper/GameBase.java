@@ -16,7 +16,44 @@ public class GameBase {
 
 	public GameBase(){}
 
-	// マップを生成するクラス
+	public void playGame()
+	{
+		// タイトルの表示
+		showTitle();
+
+		// マップの生成
+		PlayBoard playBoard = makeBoard();
+
+		// メインループ
+		while ( ! playBoard.isClear())
+		{
+			playBoard.printMap();
+			String position = inputNextPosition(playBoard);
+			String option   = inputNextAction(position, playBoard);
+			if (checkBomb(position, playBoard) && option.equals("o"))
+			{
+				System.out.println("ここ？");
+				int xCordinate = (int)(position.charAt(0) - 'a');
+				int yCordinate = Integer.parseInt(position.substring(1,2));
+				playBoard.setOpen(xCordinate, yCordinate, true);
+				break;
+			}
+			executeNextAction(position, option, playBoard);
+		}
+
+		// 終了処理
+		endGame(playBoard);
+	}
+
+	private boolean isAlreadyOpened(String position, PlayBoard playBoard)
+	{
+		int xCordinate = (int)(position.charAt(0) - 'a');
+		int yCordinate = Integer.parseInt(position.substring(1,2));
+
+		return playBoard.getIsOpen(yCordinate, xCordinate);
+	}
+
+	// マップを生成する
 	private PlayBoard makeBoard()
 	{
 		int sideLength = inputSideLength();
@@ -26,40 +63,16 @@ public class GameBase {
 		return playBoard;
 	}
 
-	public void playGame()
-	{
-		// タイトルの表示
-		showTitle();
-		// マップの生成
-		PlayBoard playBoard = makeBoard();
-
-		// メインループ
-		while ( ! playBoard.isClear())
-		{
-			playBoard.printMap();
-			String input = inputNextPosition(playBoard);
-
-			int xCordinate = (int)(input.charAt(0) - 'a');
-			int yCordinate = Integer.parseInt(input.substring(1,2));
-			openSquareRecursive(xCordinate, yCordinate, playBoard);
-		}
-
-		// 終了処理
-		endGame(playBoard);
-	}
-
-
+	// 次に選択する座標をプレイヤーに入力してもらう
 	private String inputNextPosition(PlayBoard playBoard)
 	{
 		String inputString = "";
-		System.out.println();
-		//System.out.println("空けたい場所を選択してください ( 例：a2 ）");
 
 		try
 		{
 			do
 			{
-				System.out.println("空けたい場所を選択してください ( 例：a2 ）");
+				System.out.println("\n場所を選択してください ( 例：a2 ）");
 				inputString = br.readLine();
 			}
 			while ( ! isValidInput(inputString, playBoard));
@@ -68,21 +81,100 @@ public class GameBase {
 		}
 		catch (IOException e)
 		{
-			System.out.println("入力エラーです。もう一度入力してください");
+			System.out.println("入力エラーです。ゲームを終了します");
 			System.exit(-1);
 		}
 		return inputString;
 	}
 
+	private boolean checkBomb(String position, PlayBoard playBoard)
+	{
+		int xCordinate = (int)(position.charAt(0) - 'a');
+		int yCordinate = Integer.parseInt(position.substring(1,2));
+
+		return playBoard.getIsBomb(xCordinate, yCordinate);
+	}
+
+	// 次に選択する行動をプレイヤーに入力してもらう
+	private String inputNextAction(String position, PlayBoard playBoard)
+	{
+		String inputString = "";
+		Pattern p = Pattern.compile("[of]");
+		Matcher m;
+
+		try
+		{
+			do
+			{
+				if (isAlreadyOpened(position, playBoard))
+				{
+					System.out.println("キャンセルなら o を、旗を降ろす場合は f を入力してください");
+				}
+				else
+				{
+					System.out.println("開くなら o を、旗を立てる場合は f を入力してください");
+				}
+				inputString = br.readLine();
+				m = p.matcher(inputString);
+			}
+			while ( ! m.find());
+
+			return inputString;
+		}
+		catch (IOException e)
+		{
+			System.out.println("入力エラーです。ゲームを終了します");
+			System.exit(-1);
+		}
+		return inputString;
+	}
+
+	// プレイヤーの選択した行動を実行する
+	private void executeNextAction(String position, String option, PlayBoard playBoard)
+	{
+		int xCordinate = (int)(position.charAt(0) - 'a');
+		int yCordinate = Integer.parseInt(position.substring(1,2));
+
+		switch (option.charAt(0))
+		{
+		case 'f' :
+			changeFlagCondition(xCordinate, yCordinate, playBoard);
+			break;
+		case 'o' :
+			openSquareRecursive(xCordinate, yCordinate, playBoard);
+			break;
+		default :
+			break;
+		}
+	}
+
+	// 指定されたマスの旗の状態を変更する
+	private void changeFlagCondition(int xCordinate, int yCordinate, PlayBoard playBoard)
+	{
+		if (playBoard.getIsFlag(yCordinate, xCordinate))
+		{
+			playBoard.setOpen(xCordinate, yCordinate, false);
+			playBoard.setFlag(xCordinate, yCordinate, false);
+		}
+		else
+		{
+			playBoard.setOpen(xCordinate, yCordinate, true);
+			playBoard.setFlag(xCordinate, yCordinate, true);
+		}
+
+	}
+
+
 	private boolean isValidInput(String input, PlayBoard playBoard)
 	{
+
 		char a = 'a' - 1;
+
 		for  (int i = 0; i < playBoard.getSideLength(); i++)
 		{
 			a++;
 		}
-
-		Pattern p = Pattern.compile("[a-" + (char)(a - 1) + "][0-" + (playBoard.getSideLength() - 1) +"]");
+		Pattern p = Pattern.compile("[a-" + a + "][0-" + (playBoard.getSideLength() - 1) +"]");
 		Matcher m = p.matcher(input);
 
 		if ( ! m.find())
@@ -96,14 +188,40 @@ public class GameBase {
 	{
 		playBoard.printMap();
 
+		if (playBoard.isClear())
+		{
+			showGameClear();
+		}
+		else
+		{
+			showGameOver();
+		}
+	}
+
+	private void showGameClear()
+	{
+		System.out.println();
 		System.out.println();
 		System.out.println("####################################");
 		System.out.println("#                                  #");
+		System.out.println("#         ゲームクリアです         #");
 		System.out.println("#       おめでとうございます       #");
 		System.out.println("#                                  #");
 		System.out.println("####################################");
 	}
 
+	private void showGameOver()
+	{
+		System.out.println();
+		System.out.println();
+		System.out.println("####################################");
+		System.out.println("#                                  #");
+		System.out.println("#        ゲームオーバーです        #");
+		System.out.println("#      また挑戦してくださいね      #");
+		System.out.println("#                                  #");
+		System.out.println("####################################");
+
+	}
 
 	private void showTitle()
 	{
@@ -165,12 +283,12 @@ public class GameBase {
 		return bombAmount;
 	}
 
-	// 周りのところもあける
+	// 選択された場所をひらく
+	// もし選択されたところが 0 の時は再帰的に周りの場所もひらく
 	private void openSquareRecursive(int xCordinate, int yCordinate, PlayBoard playBoard)
 	{
 		if (playBoard.getIsOpen(yCordinate,xCordinate))
 		{
-			System.out.println(xCordinate + ":" + yCordinate);
 			return;
 		}
 		switch (playBoard.getStatus(yCordinate, xCordinate))
@@ -178,7 +296,7 @@ public class GameBase {
 		case -1:
 			break;
 		case 0:
-			playBoard.setOpen(yCordinate, xCordinate);
+			playBoard.setOpen(xCordinate, yCordinate, true);
 			openSquareRecursive(xCordinate + 1, yCordinate + 1, playBoard);
 			openSquareRecursive(xCordinate + 1, yCordinate    , playBoard);
 			openSquareRecursive(xCordinate + 1, yCordinate - 1, playBoard);
@@ -189,7 +307,7 @@ public class GameBase {
 			openSquareRecursive(xCordinate    , yCordinate - 1, playBoard);
 			break;
 		default:
-			playBoard.setOpen(yCordinate, xCordinate);
+			playBoard.setOpen(xCordinate, yCordinate, true);
 			break;
 		}
 	}
