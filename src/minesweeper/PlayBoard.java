@@ -35,7 +35,7 @@ public class PlayBoard {
 		{
 			for (int width = 0; width < this.sideLength; width++)
 			{
-				if (this.mapArray[height][width].isOpen())
+				if (this.mapArray[height][width].getIsOpen())
 				{
 					amountOfOpenSquare++;
 				}
@@ -120,13 +120,13 @@ public class PlayBoard {
 			for (int width = 0; width < this.sideLength; width++)
 			{
 				System.out.print("|");
-				if ( ! this.mapArray[height][width].isOpen())
+				if ( ! this.mapArray[height][width].getIsOpen())
 				{
 					System.out.print("?");
 					continue;
 				}
 
-				if (this.mapArray[height][width].isFlag())
+				if (this.mapArray[height][width].getIsFlag())
 				{
 					System.out.print("F");
 					continue;
@@ -158,7 +158,7 @@ public class PlayBoard {
 	{
 		if (width >= 0 && width <= this.sideLength - 1 && height >= 0 && height <= this.sideLength - 1)
 		{
-			return this.mapArray[height][width].isOpen();
+			return this.mapArray[height][width].getIsOpen();
 		}
 		return false;
 	}
