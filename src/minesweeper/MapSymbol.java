@@ -1,12 +1,10 @@
 package minesweeper;
 
 /**
- * MapSymbolは、マップ上の１マスをあらわすクラスです
+ * マップ上の１マスの状態をあらわすクラス
  *
  * @author ike_ryota
- *
  */
-
 public class MapSymbol {
 
 	private int     status; // 周りに爆弾がいくつあるかを示す数字 (-1だと爆弾として扱う)
@@ -25,7 +23,7 @@ public class MapSymbol {
 
 	/**
 	 * 引数ありコンストラクタ
-	 * @param int status // 周りに爆弾がいくつあるかを示す数字 (-1だと爆弾として扱う)
+	 * @param int status 周りに爆弾がいくつあるかを示す数字 (-1だと爆弾として扱う)
 	 */
 	public MapSymbol(int status)
 	{
@@ -36,7 +34,7 @@ public class MapSymbol {
 
 	/**
 	 * statusに対するgetter
-	 * @return status
+	 * @return status 周りに爆弾がいくつあるかを示す数字 (-1だと爆弾として扱う)
 	 */
 	public int getStatus()
 	{
@@ -45,7 +43,7 @@ public class MapSymbol {
 
 	/**
 	 * statusに対するsetter
-	 * @param status
+	 * @param status 周りに爆弾がいくつあるかを示す数字 (-1だと爆弾として扱う)
 	 */
 	public void setStatus(int status)
 	{
